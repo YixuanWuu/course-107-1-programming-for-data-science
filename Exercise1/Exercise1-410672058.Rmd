@@ -19,7 +19,7 @@ bankdata <- read_csv("https://raw.githubusercontent.com/tpemartin/github-data/ma
 ### 1.1
 將**銀行**變數改成factor
 ```{r ans11}
-as.factor('bankdata') -> bankdata
+as.factor(bankdata$'銀行') -> 銀行
 ```
 
 ### 1.2
@@ -32,7 +32,11 @@ a=str_sub(bankdata$年月)
 b=str_split_fixed(a, "/",2)
 c=as.numeric(b[,1])+1911
 d=as.character(c)
-str_c(d, "/" ,b[,2])
+e=str_c(d, "/" ,b[,2],"/" ,01)
+dd=as.Date(e)
+
+bankdata$年月<-dd
+bankdata
 ```
 
 ## 2
