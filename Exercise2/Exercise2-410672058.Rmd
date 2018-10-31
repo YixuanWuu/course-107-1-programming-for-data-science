@@ -19,7 +19,8 @@ a1=str_sub(iPeenData$均消)
 a2=str_trim(a1)
 a3=word(a2, 2)
 a4=str_replace(a3,',','')
-as.numeric(a4)
+a5=as.numeric(a4)
+a5
 ```
 
 
@@ -52,14 +53,15 @@ with_tz(b2,"Asia/Taipei")
 
 ```{r ans23}
 library(lubridate)
-b1=str_sub(filmVotingData$Timestamp,12,13)
-hour<- str_replace(b1,":","")
+filmVotingData$hour<- hour(mdy_hms(filmVotingData$Timestamp))
+filmVotingData$hour
 ```
 
 2.4 使用`table()`統計學生最活躍的填表時間。
 
 ```{r ans24}
+library(stringr)
 b1=str_sub(filmVotingData$Timestamp)
-table(hour)
+table(filmVotingData$hour)
 ```
 
