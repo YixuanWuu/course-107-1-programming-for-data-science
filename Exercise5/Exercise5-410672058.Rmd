@@ -34,6 +34,7 @@ transcriptData <- read_csv("https://raw.githubusercontent.com/tpemartin/github-d
 取出學號edfeQ7fb8的子樣本：
 
 ```{r ans11}
+subsample <- transcriptData [transcriptData$學號 == 'edfeQ7fb8',]
 ```
 
 ## 1.2 總學分數
@@ -47,6 +48,14 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 
 請用dplyr函數改寫以上三個步驟：使用`mutate()`完成#1，接著用`summarise()`完成#2及#3
 ```{r ans12}
+subsample %>%
+  mutate(
+    及格 = 學期成績 >= 60  )%>%
+  summarise(
+    總修習學分數=sum(學分數),
+    總實得學分數=sum(subsample$學分數[subsample$及格])
+  ) -> result
+result
 ```
 
 ## 1.3 summarise應用
@@ -56,6 +65,16 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 重寫上一題，但讓summarise輸出「學號」、「總修習學分數」、「總實得學分數」三項值。
 
 ```{r ans13}
+subsample %>%
+  mutate(
+    及格 = 學期成績 >= 60  )%>%
+  summarise(
+    學號= 學號[1],
+    總修習學分數=sum(學分數),
+    總實得學分數=sum(subsample$學分數[subsample$及格]),
+    
+  ) -> result1
+result1
 ```
 
 ## 1.4 學分數計算函數
@@ -63,6 +82,16 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 設計一個學分數計算函數稱之為totalCredits，當我們給它學號字串，它便會回傳給我們「學號」、「總修習學分數」、「總實得學分數」三項值。以上題為例,`totalCredits("edfeQ7fb8")`會回傳上題答案值。
 
 ```{r ans14}
+totalCredits <- function(x){
+  subsample = transcriptData [transcriptData$學號 == x,]
+  subsample$及格 = subsample$學期成績 >= 60
+  總修習學分數=sum(subsample$學分數)
+  總實得學分數=sum(subsample$學分數[subsample$及格])
+  學號= x
+  paste0('學號:',學號,' ','總修習學分數:',總修習學分數,' ','總實得學分數:',總實得學分數)
+  
+}
+totalCredits("edfeQ7fb8")
 ```
 
 
@@ -70,6 +99,10 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 
 學號的第5-6碼為此學生系別, 請在transcriptData新增**系別**欄位。
 ```{r ans15}
+transcriptData %>%
+  mutate(
+    系別 = str_sub(學號,5,6)
+  ) -> transcriptData
 ```
 
 
@@ -78,6 +111,21 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 找出此樣本中100學年第1學期學生所選通識科目有那幾種。最後一行程式請存在**通識科目總表**物件(class為character)裡，裡頭是「不重覆」的科目名稱。
 （hint: 由於每個科目可以有很多學生修，取出每位學生修的通識會有不少重覆，此時可以用`unique()`函數去掉重複的部份即是完整的科目種類。）
 ```{r ans16}
+通識 <- which(transcriptData$`必選修類別（必∕選∕通）`=='通')
+subsample <- transcriptData[通識,]
+
+subsample$科目名稱 %>%
+  as.factor%>%
+  unique -> subjectsName
+subjectsName = as.character(subjectsName)
+通識科目總表 <- vector('character',length(subjectsName))
+通識科目總表 <- subjectsName
+通識科目總表
+
+subsample$科目名稱 %>%
+  as.factor%>%
+  unique %>%
+  as.character -> 通識科目總表
 ```
 
 ## 1.7 課堂學生系別背景多樣化
@@ -94,6 +142,26 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
   
   
 ```{r ans17}
+classListDONE <- function(X){
+ a <- which(transcriptData$科目名稱 == X)
+classList <- transcriptData[a,]
+classList$系別 <- str_sub(classList$學號,5,6)
+departmentList <- classList$系別 %>% as.factor %>% unique
+}  
+
+
+shannon <- function(x){
+  studNumAll <- vector("numeric",length(x))
+  for(i in c(1:length(x))){
+  x_i <- x[i]
+  numericalIndexForSubsample <- which(classList$系別==x_i)
+  subsample_i <- classList[numericalIndexForSubsample,]
+  studnum_i <- nrow(subsample_i)
+  studNumAll[[i]] <- studnum_i
+  }
+  studNumAll <- studNumAll/sum(studNumAll)
+  -sum(studNumAll*log(studNumAll))
+}
 ```
 
 
@@ -101,6 +169,25 @@ subsample$學期成績 >= 60 -> subsample$及格 # 1
 
 請選出104學年第1學期有修通識科目ZT13的學生系別，再透過先前創造的`shannon()`來計算該課程的學生系別背景多樣性指標值（最後一行請讓螢幕出現此值）。
 ```{r ans18}
+a <- which(transcriptData$學年 == 104 & transcriptData$學期 == 1 & transcriptData$科目名稱 == 'ZT13')
+classList <- transcriptData[a,]
+classList$系別 <- str_sub(classList$學號,5,6)
+classList$系別 %>% as.factor %>% unique -> departmentList1
+
+shannon <- function(x){
+  studNumAll <- vector("numeric",length(x))
+  for(i in c(1:length(x))){
+  x_i <- x[i]
+  numericalIndexForSubsample <- which(classList$系別==x_i)
+  subsample_i <- classList[numericalIndexForSubsample,]
+  studnum_i <- nrow(subsample_i)
+  studNumAll[[i]] <- studnum_i
+  }
+  studNumAll <- studNumAll/sum(studNumAll)
+  -sum(studNumAll*log(studNumAll))
+}
+
+shannon(departmentList1)
 ```
 
 
